@@ -1,0 +1,7 @@
+---
+
+default_user: ubuntu
+admin_user: cam
+
+mail_volume_name: mail
+mail_volume_path: /var/mail

@@ -1,0 +1,22 @@
+---
+
+- name: enable postfix
+  service: name=postfix enabled=yes
+
+- name: restart postfix
+  service: name=postfix state=restarted
+
+- name: reload postfix
+  command: postfix reload
+
+- name: rebuild postfix virtual aliases
+  command: postmap /etc/postfix/virtual
+
+- name: rebuild postfix virtual mailboxes
+  command: postmap /etc/postfix/vmailbox
+
+- name: enable dovecot
+  service: name=dovecot enabled=yes
+
+- name: restart dovecot
+  service: name=dovecot state=restarted

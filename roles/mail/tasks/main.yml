@@ -1,0 +1,56 @@
+---
+
+- name: Install Dovecot
+  apt: name=dovecot-imapd
+  notify:
+    - enable dovecot
+    - restart dovecot
+
+- name: Create vmail group
+  group: name=vmail gid=2000
+
+- name: Create vmail user
+  user: name=vmail group=vmail home={{mail_volume_path}} uid=2000
+
+- name: Mount mail volume
+  mount: name={{mail_volume_path}} src=/dev/xvdf fstype=ext4 state=mounted
+
+- name: Set ownership of mail directory
+  file: path=/var/mail/vhosts state=directory owner=vmail group=vmail
+
+- name: Create dovecot log
+  file: name=/var/log/dovecot.log state=touch owner=vmail group=vmail
+
+- name: Create dovecot-info log
+  file: name=/var/log/dovecot-info.log state=touch owner=vmail group=vmail
+
+- name: Apply dovecot.conf
+  template: src=dovecot/dovecot.conf dest=/etc/dovecot/dovecot.conf
+  notify:
+    - restart dovecot
+
+- name: Apply dovecot passwd file
+  template: src=dovecot/passwd dest=/etc/dovecot/passwd
+  notify:
+    - restart dovecot
+
+- name: Install Postfix
+  apt: name=postfix
+  notify:
+    - enable postfix
+    - restart postfix
+
+- name: Apply Postfix main.cf
+  template: src=postfix/main.cf.j2 dest=/etc/postfix/main.cf
+  notify:
+    - reload postfix
+
+- name: Apply postfix virtual aliases
+  template: src=postfix/virtual.j2 dest=/etc/postfix/virtual
+  notify:
+    - rebuild postfix virtual aliases
+
+- name: Apply postfix virtual mailboxes
+  template: src=postfix/vmailbox.j2 dest=/etc/postfix/vmailbox
+  notify:
+    - rebuild postfix virtual mailboxes

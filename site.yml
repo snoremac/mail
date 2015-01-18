@@ -1,0 +1,31 @@
+---
+
+- hosts: mail
+  remote_user: "{{default_user}}"
+  sudo: yes
+  tasks:
+    - name: Update apt cache
+      apt: update_cache=yes
+
+    - name: Gather ec2 facts
+      ec2_facts:
+
+- hosts: localhost
+  vars:
+    ansible_python_interpreter: /opt/local/bin/python
+  tasks:
+    - name: Attach data volume
+      ec2_vol: name={{mail_volume_name}} instance={{hostvars[groups['mail'][0]]['ansible_ec2_instance_id']}} device_name=/dev/xvdf
+
+- hosts: mail
+  remote_user: "{{default_user}}"
+  sudo: yes
+  roles:
+    - common
+
+- hosts: mail
+  remote_user: "{{admin_user}}"
+  sudo: yes
+  tags: wip
+  roles:
+    - mail

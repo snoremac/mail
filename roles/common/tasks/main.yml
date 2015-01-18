@@ -1,0 +1,31 @@
+---
+
+- name: Set hostname
+  shell: echo {{inventory_hostname_short}} > /etc/hostname
+  when: public_hostname
+  notify:
+    - restart hostname
+
+- name: Add local resolution for hostname
+  lineinfile: dest=/etc/hosts regexp="127\.0\.0\.1\s+localhost" line="127.0.0.1 localhost {{inventory_hostname_short}} {{inventory_hostname}}"
+  when: public_hostname
+  notify:
+    - restart hostname
+
+- name: Create admin user
+  user: name={{admin_user}} uid=1001 shell=/bin/bash createhome=yes groups=sudo,admin,adm append=yes
+
+- name: Allow passwordless sudo for sudo group
+  lineinfile: dest=/etc/sudoers regexp="^%sudo\s+ALL.*$" line="%sudo ALL = (ALL) NOPASSWD:ALL"
+
+- name: Create SSH directory for admin user
+  file: path=/home/{{admin_user}}/.ssh state=directory owner={{admin_user}} group={{admin_user}}
+
+- name: Copy default user's authorized keys
+  command: cp /home/{{default_user}}/.ssh/authorized_keys /home/{{admin_user}}/.ssh/authorized_keys
+
+- name: Set permissions on authorized keys
+  file: path=/home/{{admin_user}}/.ssh/authorized_keys owner={{admin_user}} group={{admin_user}}
+
+- name: Install Git
+  apt: name=git-core
