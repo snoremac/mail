@@ -1,5 +1,11 @@
 ---
 
+- name: enable spamassassin
+  service: name=spamassassin enabled=yes
+
+- name: restart spamassassin
+  service: name=spamassassin state=restarted
+
 - name: enable postfix
   service: name=postfix enabled=yes
 
